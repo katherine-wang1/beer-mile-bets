@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Plus } from "lucide-react";
 import { useMarkets } from "@/lib/hooks";
 import { MarketCard } from "./MarketCard";
+import { HowItWorks } from "./HowItWorks";
 import { Skeleton } from "./ui/Skeleton";
 
 export function HomeFeed() {
@@ -24,25 +25,35 @@ export function HomeFeed() {
 
   if (markets.isLoading) {
     return (
-      <div className="space-y-3">
-        {Array.from({ length: 3 }).map((_, i) => (
-          <Skeleton key={i} className="h-32 w-full" />
-        ))}
+      <div className="space-y-5">
+        <HowItWorks />
+        <div className="space-y-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <Skeleton key={i} className="h-32 w-full" />
+          ))}
+        </div>
       </div>
     );
   }
 
   if (markets.isError) {
     return (
-      <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
-        Couldn&apos;t load markets.
+      <div className="space-y-5">
+        <HowItWorks />
+        <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+          Couldn&apos;t load markets.
+        </div>
       </div>
     );
   }
 
   return (
     <div className="space-y-5">
-      <div className="flex items-center justify-between">
+      <HowItWorks />
+      <div
+        id="live-markets-feed"
+        className="flex items-center justify-between scroll-mt-4"
+      >
         <div>
           <h1 className="text-xl font-bold tracking-tight">Live markets</h1>
           <p className="text-sm text-stone-500">
