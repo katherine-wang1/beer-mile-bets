@@ -5,7 +5,7 @@ import { useState } from "react";
 import { ArrowLeft, Lock, XCircle } from "lucide-react";
 import toast from "react-hot-toast";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMarket } from "@/lib/hooks";
+import { useMarket, useMe } from "@/lib/hooks";
 import { Skeleton } from "./ui/Skeleton";
 import { OddsBar } from "./OddsBar";
 import { ResolveModal } from "./ResolveModal";
@@ -22,6 +22,7 @@ interface AdminTrade {
 }
 
 export function AdminMarketDetail({ id }: { id: string }) {
+  const me = useMe();
   const market = useMarket(id);
   const qc = useQueryClient();
   const [resolveSide, setResolveSide] = useState<Side | null>(null);
@@ -30,7 +31,9 @@ export function AdminMarketDetail({ id }: { id: string }) {
   const trades = useQuery<AdminTrade[]>({
     queryKey: ["admin", "trades", id],
     queryFn: async () => {
-      const res = await fetch(`/api/admin/markets/${id}/trades`);
+      const res = await fetch(`/api/admin/markets/${id}/trades`, {
+        credentials: "include",
+      });
       if (!res.ok) throw new Error("Failed to load trades");
       return res.json();
     },
@@ -40,6 +43,7 @@ export function AdminMarketDetail({ id }: { id: string }) {
     mutationFn: async () => {
       const res = await fetch(`/api/markets/${id}`, {
         method: "PATCH",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "lock" }),
       });
@@ -61,6 +65,7 @@ export function AdminMarketDetail({ id }: { id: string }) {
     mutationFn: async ({ outcome, note }: { outcome: Side; note: string }) => {
       const res = await fetch(`/api/markets/${id}`, {
         method: "PATCH",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "resolve", outcome, note }),
       });
@@ -85,6 +90,7 @@ export function AdminMarketDetail({ id }: { id: string }) {
     mutationFn: async () => {
       const res = await fetch(`/api/markets/${id}`, {
         method: "PATCH",
+        credentials: "include",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "void" }),
       });
@@ -104,7 +110,14 @@ export function AdminMarketDetail({ id }: { id: string }) {
     onError: (err: Error) => toast.error(err.message),
   });
 
-  if (market.isLoading) return <Skeleton className="h-64 w-full" />;
+  if (me.isLoading || market.isLoading) return <Skeleton className="h-64 w-full" />;
+  if (me.data?.role !== "admin") {
+    return (
+      <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">
+        Admin only.
+      </div>
+    );
+  }
   if (!market.data) {
     return (
       <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-sm text-rose-700">

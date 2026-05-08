@@ -1,6 +1,7 @@
 import "server-only";
 import { NextResponse } from "next/server";
 import { getCurrentUser } from "./session";
+import { getSupabaseServer } from "./supabase-server";
 import type { Role } from "./types";
 
 export interface AuthedUser {
@@ -33,6 +34,8 @@ export function withAuth<TContext = unknown>(
 
 /**
  * Like `withAuth` but additionally requires admin role.
+ * Authorizes against the database so session role cannot drift from `users.role`
+ * (e.g. after promoting an account without signing in again).
  */
 export function withAdmin<TContext = unknown>(
   handler: (
@@ -44,8 +47,19 @@ export function withAdmin<TContext = unknown>(
   return async (request: Request, context: TContext) => {
     const user = await getCurrentUser();
     if (!user) return jsonError("Not authenticated", 401);
-    if (user.role !== "admin") return jsonError("Forbidden", 403);
-    return handler(request, user, context);
+
+    const supabase = getSupabaseServer();
+    const { data: row, error } = await supabase
+      .from("users")
+      .select("role")
+      .eq("id", user.userId)
+      .maybeSingle<{ role: Role }>();
+
+    if (error) return jsonError(error.message, 500);
+    if (!row || row.role !== "admin") return jsonError("Forbidden", 403);
+
+    const adminUser: AuthedUser = { ...user, role: row.role };
+    return handler(request, adminUser, context);
   };
 }
 
