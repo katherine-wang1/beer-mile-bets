@@ -80,11 +80,13 @@ BEGIN
   -- Decrement balance.
   UPDATE users SET beer_bucks = beer_bucks - p_amount WHERE id = p_user_id;
 
-  -- Bump the appropriate pool.
+  -- Bump the appropriate pool. Qualify columns as markets.yes_pool because
+  -- RETURNS TABLE (yes_pool, no_pool, ...) defines homonymous variables that
+  -- would otherwise make yes_pool / no_pool ambiguous in UPDATE expressions.
   IF p_side = 'yes' THEN
-    UPDATE markets SET yes_pool = yes_pool + p_amount WHERE id = p_market_id;
+    UPDATE markets SET yes_pool = markets.yes_pool + p_amount WHERE id = p_market_id;
   ELSE
-    UPDATE markets SET no_pool = no_pool + p_amount WHERE id = p_market_id;
+    UPDATE markets SET no_pool = markets.no_pool + p_amount WHERE id = p_market_id;
   END IF;
 
   -- Insert the trade.
