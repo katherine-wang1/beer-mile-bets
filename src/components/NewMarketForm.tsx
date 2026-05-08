@@ -77,7 +77,7 @@ export function NewMarketForm() {
           <input
             value={question}
             onChange={(e) => setQuestion(e.target.value)}
-            placeholder="Will Marcello throw up at least once?"
+            placeholder="Will Marcello throw up?"
             maxLength={160}
             required
             className="mt-1 w-full rounded-xl border border-stone-200 bg-white px-3 py-3 text-base outline-none focus:border-amber-400 focus:ring-2 focus:ring-amber-200"
@@ -94,7 +94,7 @@ export function NewMarketForm() {
           <textarea
             value={criteria}
             onChange={(e) => setCriteria(e.target.value)}
-            placeholder="Resolves Yes if Marcello vomits at any point during the race or penalty lap, confirmed by 3+ witnesses."
+            placeholder="Yes if he throws up at any point in the race, No otherwise"
             maxLength={500}
             rows={3}
             required
